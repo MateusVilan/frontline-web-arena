@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#070c11">
+<title>FRONTLINE.WEB · Arena Multiplayer</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div id="viewport"></div>
+<div id="vignette"></div>
+<div id="crosshair"><i></i><i></i><i></i><i></i><b></b></div>
+<div id="hitmark">✕</div><div id="damagePopup" aria-live="off"></div>
+<div id="hud" class="hidden">
+ <div id="topbar"><span class="logoTiny">F<span>•</span>W</span><span id="roomName">ARENA</span><span id="matchScore">0 <em>:</em> 0</span><span id="timer">01:30</span><span id="ping">— MS</span><span id="fps">— FPS</span></div>
+ <div id="minimapPanel"><div id="minimapTitle">RADAR</div><canvas id="minimap" width="174" height="126" aria-label="Minimapa das posições da equipa"></canvas></div>
+ <div id="killfeed"></div>
+ <div id="centerNotice"></div><div id="spectatorInfo" class="hidden" aria-live="polite"></div>
+ <div id="bottomLeft"><div class="hLabel">VIDA</div><span id="healthValue">100</span><div class="hpTrack"><div id="healthFill"></div></div></div>
+ <div id="bottomRight"><div class="gunName" id="weaponName">MK18</div><div class="gunAmmo" id="ammoValue">30 <small>/ 30</small></div><div id="reloadInfo"></div></div>
+ <div id="controlsTip">WASD MOVER · SHIFT ANDAR DEVAGAR · CTRL AGACHAR · ESPAÇO SALTAR · F INSPECIONAR · R RECARREGAR · TAB PLACAR · Q/E ESPECTADOR</div>
+</div>
+<div id="scoreboard" class="hidden"><h3>PLACAR DA ARENA</h3><div id="scoreContent"></div><p>Segura TAB para ver o placar</p></div>
+<div id="menu" class="overlay">
+ <div class="menuPanel">
+  <div class="eyebrow">ARENA V2.0 · FPS NO BROWSER · MULTIPLAYER ONLINE</div>
+  <h1>FRONTLINE<span>.</span>WEB</h1>
+  <p class="subtitle">ARENA <strong>1V1 / 2V1 / 2V2</strong> — cria uma sala e partilha o código com os teus amigos.</p>
+  <div class="label">O TEU NOME</div><input id="playerName" maxlength="16" spellcheck="false" placeholder="Escolhe um nickname" value="JOGADOR">
+  <div class="twoCols">
+   <section><div class="label">MODO DE JOGO</div><select id="modeSelect"><option value="1v1">1v1 · DUELO</option><option value="2v1">2v1 · DESAFIO</option><option value="2v2">2v2 · EQUIPAS</option></select></section>
+   <section><div class="label">MAPA</div><select id="mapSelect"><option value="dockyard">DOCKYARD</option><option value="foundry">FOUNDRY</option></select></section>
+  </div>
+  <button id="createBtn" class="primaryBtn">CRIAR SALA <span>↗</span></button>
+  <div class="split"><span></span> OU ENTRA NUMA SALA <span></span></div>
+  <div class="joinRow"><input id="roomCodeInput" maxlength="5" placeholder="CÓDIGO" spellcheck="false"><button id="joinBtn">ENTRAR</button></div>
+  <p class="status" id="connectStatus">A estabelecer ligação ao servidor…</p>
+  <button class="smallLink" id="settingsOpen">⚙ DEFINIÇÕES</button>
+ </div>
+</div>
+<div id="lobby" class="overlay hidden">
+ <div class="menuPanel lobbyPanel">
+  <div class="eyebrow">SALA PRIVADA</div><h2>PREPARAR PARTIDA</h2>
+  <div class="codeHead"><span>CÓDIGO DA SALA</span><button id="copyCode" title="Copiar código">COPIAR</button></div>
+  <div id="roomCodeDisplay" class="bigCode">ABCDE</div>
+  <div class="rowInfo"><span id="lobbyMode">1V1</span><span id="lobbyMap">DOCKYARD</span><span id="lobbyCount">1 / 2</span></div>
+  <div id="lobbyPlayers"></div>
+  <div class="twoCols" id="hostConfig"><section><div class="label">MODO</div><select id="hostMode"><option value="1v1">1v1</option><option value="2v1">2v1</option><option value="2v2">2v2</option></select></section>
+   <section><div class="label">MAPA</div><select id="hostMap"><option value="dockyard">DOCKYARD</option><option value="foundry">FOUNDRY</option></select></section></div>
+  <button id="startMatch" class="primaryBtn">COMEÇAR PARTIDA <span>→</span></button>
+  <div id="lobbyHelp" class="status">À espera de jogadores…</div>
+  <button id="leaveRoom" class="smallLink">SAIR DA SALA</button>
+ </div>
+</div>
+<div id="pause" class="overlay hidden">
+ <div class="menuPanel compactPanel"><div class="eyebrow">MENU</div><h2>JOGO EM PAUSA</h2>
+  <p class="subtitle">Os outros jogadores continuam a jogar.</p>
+  <button id="resume" class="primaryBtn">VOLTAR AO JOGO <span>→</span></button>
+  <button id="pauseSettings" class="smallLink">⚙ DEFINIÇÕES</button>
+  <button id="pauseLeave" class="smallLink">SAIR DA PARTIDA</button>
+ </div>
+</div>
+<div id="settings" class="overlay hidden">
+ <div class="menuPanel compactPanel"><div class="eyebrow">CONTROLOS</div><h2>DEFINIÇÕES</h2>
+  <div class="rangeRow"><label for="sens">SENSIBILIDADE</label><span id="sensValue"></span></div><input type="range" id="sens" min="1" max="12" value="5">
+  <div class="rangeRow"><label for="volume">VOLUME DOS SONS</label><span id="volumeValue"></span></div><input type="range" id="volume" min="0" max="100" value="25">
+  <div class="rangeRow"><label for="footsteps">VOLUME DOS PASSOS</label><span id="footstepsValue"></span></div><input type="range" id="footsteps" min="0" max="100" value="20">
+  <div class="rangeRow"><label for="resolution">RESOLUÇÃO (MANUAL)</label><span id="resolutionValue"></span></div><input type="range" id="resolution" min="50" max="100" step="10" value="80">
+  <div class="rangeRow"><label for="fov">CAMPO DE VISÃO (FOV)</label><span id="fovValue"></span></div><input type="range" id="fov" min="70" max="100" step="2" value="76">
+  <div class="rangeRow"><label for="fpsCap">LIMITE DE FPS</label><span id="fpsCapValue"></span></div>
+  <select id="fpsCap"><option value="30">30 FPS</option><option value="45">45 FPS</option><option value="60" selected>60 FPS</option><option value="90">90 FPS</option><option value="120">120 FPS</option><option value="0">SEM LIMITE</option></select>
+  <p class="status">Sem modo automático de desempenho. FPS e resolução ficam à tua escolha.</p>
+  <button id="closeSettings" class="primaryBtn">GUARDAR <span>✓</span></button>
+ </div>
+</div>
+<div id="toast"></div>
+<script type="module" src="/game.js"></script>
+</body>
+</html>
