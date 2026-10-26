@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {getInviteCode,makeInviteUrl,isLocalOrigin,validRoomCode} from '../src/invite-links.js';
+const html=fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
+const js=fs.readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
+assert.equal(getInviteCode('?room=abc123'),'ABC123');
+assert.equal(getInviteCode('?room=bad!!'),'');
+assert.equal(getInviteCode('?unused=AB12CD'),'');
+assert.equal(validRoomCode('AB12CD'),true);
+assert.equal(validRoomCode('ABC'),false);
+assert.equal(makeInviteUrl('https://frontline.onrender.com','ab12cd'),'https://frontline.onrender.com/?room=AB12CD');
+assert.equal(isLocalOrigin('http://localhost:3000'),true);
+assert.equal(isLocalOrigin('https://frontline.onrender.com'),false);
+for(const id of ['hud-invite','pause-invite','copy-invite','room-code','pause-menu','scoreboard','fps-meter'])assert.ok(html.includes('id="'+id+'"'),'Falta '+id);
+for(const option of ['hud-scale','reticle-color','radar-mode'])assert.ok(js.includes('id="'+option+'"'),'Falta '+option);
+console.log('PASS: convites, URL, aviso localhost e opções HUD.');

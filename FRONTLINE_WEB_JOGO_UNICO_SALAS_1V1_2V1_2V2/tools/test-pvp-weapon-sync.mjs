@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import * as T from '../public/vendor/three.module.js';
+import {createArenaFighter,setArenaFighterWeapon} from '../src/models.js';
+const fighter=createArenaFighter(T,'blue','m4');
+assert.equal(fighter.userData.weaponId,'m4');
+const originalGun=fighter.userData.rifle;
+assert.ok(setArenaFighterWeapon(fighter,'pistol'));
+assert.equal(fighter.userData.weaponId,'pistol');
+assert.equal(fighter.userData.rifle,originalGun,'weapon swaps must not allocate a new character or gun mesh');
+assert.ok(originalGun.scale.z < .3,'pistol must look shorter than the rifle');
+assert.ok(!setArenaFighterWeapon(fighter,'pistol'),'same weapon causes no repeated updates');
+assert.ok(setArenaFighterWeapon(fighter,'knife'));
+assert.ok(setArenaFighterWeapon(fighter,'ak'));
+assert.ok(originalGun.scale.z>.6);
+console.log('PASS: arena remote fighter updates rifle, pistol, knife and AK without reloading meshes.');
+const port=Number(process.env.TEST_PORT||3000);
+const a=new WebSocket(`ws://127.0.0.1:${port}/ws`);
+const b=new WebSocket(`ws://127.0.0.1:${port}/ws`);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const open=ws=>new Promise((yes,no)=>{if(ws.readyState===1)return yes();ws.addEventListener('open',yes,{once:true});ws.addEventListener('error',no,{once:true});});
+const wait=(ws,type,delay=1000)=>new Promise((yes,no)=>{const timeout=setTimeout(()=>{ws.removeEventListener('message',f);no(new Error('Missing '+type));},delay);const f=e=>{const value=JSON.parse(e.data);if(value.type===type){clearTimeout(timeout);ws.removeEventListener('message',f);yes(value);}};ws.addEventListener('message',f);});
+try{
+ await Promise.all([open(a),open(b)]);
+ let next=wait(a,'ROOM');a.send(JSON.stringify({type:'CREATE',map:'rust'}));const room=await next;
+ next=wait(b,'ROOM');b.send(JSON.stringify({type:'JOIN',code:room.code}));await next;
+ await sleep(120);
+ let fires=0;
+ const listener=e=>{if(JSON.parse(e.data).type==='FIRE')fires++;};
+ b.addEventListener('message',listener);
+ a.send(JSON.stringify({type:'SHOT',weapon:'ak',yaw:0,pitch:0}));
+ await sleep(180);assert.equal(fires,0,'reject shooting with gun that was never equipped');
+ a.send(JSON.stringify({type:'MOVE',x:7.5,z:13.5,yaw:0,pitch:0,weapon:'ak'}));
+ a.send(JSON.stringify({type:'SHOT',weapon:'ak',yaw:0,pitch:0}));
+ await sleep(180);assert.equal(fires,1,'allow shot immediately after switching weapon in the same ordered connection');
+ console.log('PASS: mismatched weapon shots rejected, correctly equipped gun fires immediately.');
+}finally{a.close();b.close();}

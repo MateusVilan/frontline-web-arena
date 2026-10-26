@@ -1,0 +1,35 @@
+{
+  "name": "frontline-web-rebuild",
+  "version": "1.5.6-arena-pro-single-rooms",
+  "private": true,
+  "type": "module",
+  "description": "FRONTLINE.WEB original, solo/cooperativo e salas PvP configuráveis 1v1 2v1 2v2 no mesmo jogo",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "test:server": "node tools/test-server.mjs",
+    "test:pvp": "node tools/test-pvp.mjs && node tools/test-pvp-weapon-sync.mjs && node tools/test-pvp-performance.mjs && node tools/test-pvp-host-rebalance.mjs",
+    "test:movement": "node tools/test-movement.mjs",
+    "test:unit": "node tools/test-wallclip.mjs && node tools/test-movement.mjs && node tools/test-animation.mjs && node tools/test-navigation.mjs && node tools/test-hitboxes.mjs && node tools/test-models.mjs && node tools/test-combat-recovery.mjs && node tools/test-viewarm-rig.mjs && node tools/test-sprint-shots.mjs && node tools/test-weapon-motion.mjs && node tools/test-visible-silhouette.mjs && node tools/test-world-chunks.mjs && node tools/test-decoration-batching.mjs",
+    "test:ballistics": "node tools/test-ballistics.mjs",
+    "test:sprint-shots": "node tools/test-sprint-shots.mjs",
+    "test:viewmodels": "node tools/test-viewmodel-poses.mjs",
+    "test:butterfly": "node tools/test-v147b-motion.mjs",
+    "test:multiplayer": "node tools/test-remote-sync.mjs && node tools/test-teammate.mjs",
+    "test:audio": "node tools/test-footsteps.mjs",
+    "test:invites": "node tools/test-invite-links.mjs",
+    "test:online-rules": "node tools/test-online-rules.mjs",
+    "test:online-network": "node tools/test-online-network.mjs",
+    "test:reconnect": "node tools/test-reconnect.mjs",
+    "test:security": "node tools/test-security.mjs",
+    "test:network-fix": "node tools/test-network-fix.mjs",
+    "test:ammo": "node tools/test-ammo-authority.mjs",
+    "test:shot-sync": "node tools/test-shot-sync.mjs",
+    "test:shop-reset": "node tools/test-shop-reset.mjs",
+    "test:respawn": "node tools/test-respawn.mjs",
+    "test:score-kd": "node tools/test-score-kd.mjs",
+    "test:rooms": "node tools/test-room-lobby.mjs"
+  }
+}

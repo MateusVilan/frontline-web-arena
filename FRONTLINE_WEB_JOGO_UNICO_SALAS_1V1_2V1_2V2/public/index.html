@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>FRONTLINE.WEB — Solo + Multiplayer</title>
+  <link rel="stylesheet" href="/src/style.css"/>
+</head>
+<body>
+<main id="game">
+  <canvas id="scene"></canvas>
+
+  <div id="hud" class="hidden">
+    <div id="topbar">
+      <span class="logoTiny">F<span>•</span>W</span>
+      <span class="topChip topChip--room">SALA <b id="room-indicator">SOLO</b></span><button type="button" id="hud-invite" class="hudInvite hidden" title="Copiar convite para os amigos">↗ CONVIDAR</button>
+      <div id="top-center-stack">
+        <div id="pvp-score" class="hidden">ARENA <b id="pvp-teams">AZUL 0 — 0 LARANJA</b><small id="pvp-count">1v1 / 2v1 / 2v2</small></div>
+        <div id="round-count">ONDA <b id="wave">1</b><i></i> ABATES <b id="kills">0</b></div>
+      </div>
+      <div class="topbarStats">
+        <span id="money">$800</span>
+        <span id="fps-meter" title="Fotogramas por segundo">FPS --</span>
+        <span id="net-meter" title="Latência da ligação multiplayer">LOCAL</span>
+      </div>
+    </div>
+
+    <div id="radar-box">
+      <span id="radar-label">BLOCO INDUSTRIAL · RADAR</span>
+      <canvas id="radar" width="168" height="168"></canvas>
+    </div>
+
+    <div id="killfeed" aria-live="off" aria-label="Últimas eliminações"></div>
+    <div id="notifications" aria-live="polite"></div>
+
+    <div id="crosshair" aria-hidden="true">
+      <b></b><b></b><b></b><b></b>
+      <div id="hitmarker"><b></b><b></b><b></b><b></b></div>
+    </div>
+
+    <div class="hud-bottom">
+      <div class="hud-panel hp-box" id="hp-panel">
+        <small>VIDA <span id="armor-label">SEM COLETE</span></small>
+        <div class="health-values"><strong id="hp">100</strong><span id="health-state">OPERACIONAL</span></div>
+        <div class="hp-track"><div id="hp-track-fill"></div></div>
+      </div>
+
+      <div class="middle-hint">WASD MOVER · ESPAÇO SALTAR · CTRL AGACHAR · E INSPECT · B LOJA · ESC PAUSA</div>
+
+      <div class="hud-panel ammo-box" id="ammo-panel">
+        <div class="ammo-values"><strong id="ammo">30</strong><span id="reserve">/ ∞</span></div>
+        <div class="ammo-detail"><small id="weapon-label">M4A1-S</small><small id="reload-indicator">34 DMG</small></div>
+        <div class="ammo-track"><div id="ammo-track-fill"></div></div>
+      </div>
+    </div>
+
+    <div id="damage-vignette"></div>
+  </div>
+
+  <div id="pause-tip" class="hidden">Clique para capturar o rato · ESC para libertar</div>
+
+  <!-- Pausa inspirada na Arena. O jogo continua a funcionar em tempo real para os outros jogadores. -->
+  <section id="pause-menu" class="overlayPanel hidden" aria-labelledby="pause-title" aria-modal="true" role="dialog">
+    <div class="pauseGlass">
+      <div class="pauseEyebrow">FRONTLINE.WEB <span>·</span> HUD ARENA EDITION</div>
+      <h2 id="pause-title">EM PAUSA<span>.</span></h2>
+      <p class="pauseSub">Os outros jogadores continuam em partida.</p>
+      <div class="pauseInfo"><span id="pause-mode">MODO SOLO</span><span id="pause-map">BLOCO INDUSTRIAL</span><span id="pause-room">SEM SALA</span></div>
+      <p id="reconnect-indicator" class="reconnectNote hidden" role="status" aria-live="polite"></p>
+      <button type="button" id="pause-resume" class="pausePrimary">VOLTAR AO JOGO <span>↗</span></button>
+      <button type="button" id="pause-score" class="pauseSecondary">◫ VER PLACAR</button>
+      <div id="pause-host-tools" class="pauseHostTools hidden">
+        <label for="pause-map-choice">MAPA DA SALA · SÓ ANFITRIÃO</label>
+        <select id="pause-map-choice" aria-label="Mapa para a sala">
+          <option value="rust">ARENA FERRUGEM · PvP</option>
+          <option value="azure">TERMINAL AZUL · PvP</option>
+          <option value="industrial">BLOCO INDUSTRIAL · Coop</option>
+          <option value="harbor">PORTO NOTURNO · Coop</option>
+        </select>
+        <button type="button" id="pause-map-apply" class="pauseSecondary">↻ APLICAR MAPA / REINICIAR</button>
+        <small>Reinicia a partida para todos. Os mapas cooperativos aceitam até 2 jogadores.</small>
+      </div>
+      <button type="button" id="pause-invite" class="pauseSecondary hidden">↗ COPIAR LINK DA SALA</button>
+      <button type="button" id="pause-settings" class="pauseSecondary">⚙ DEFINIÇÕES</button>
+      <button type="button" id="pause-menu-exit" class="pauseDanger">SAIR PARA O MENU</button>
+      <p class="pauseFoot">ESC / RATO PARA PAUSAR · TAB PARA VER O PLACAR</p>
+    </div>
+  </section>
+
+  <section id="scoreboard" class="scoreOverlay hidden" aria-labelledby="scoreboard-title" role="dialog">
+    <div class="scorePanel">
+      <div class="scoreHeader"><div><div class="scoreEyebrow">FRONTLINE.WEB · INFORMAÇÃO DE PARTIDA</div><h2 id="scoreboard-title">PLACAR<span>.</span></h2></div><span id="score-map-name">ARENA</span></div>
+      <div id="score-summary" class="scoreSummary"></div>
+      <div class="scoreTeams"><section><h3>AZUL <span id="score-blue-total">0</span></h3><div id="score-blue-list" class="scoreList"></div></section><section><h3>LARANJA <span id="score-orange-total">0</span></h3><div id="score-orange-list" class="scoreList"></div></section></div>
+      <div id="score-solo" class="scoreSolo hidden"></div>
+      <p class="scoreHint">K / D = ELIMINAÇÕES / MORTES · SEGURA TAB PARA VER O PLACAR · ESC PARA VOLTAR</p>
+      <button type="button" id="score-close" class="scoreClose">FECHAR ×</button>
+    </div>
+  </section>
+
+  <div id="overlay">
+    <div class="shade"></div>
+    <div class="menu-frame arena-look">
+      <div class="menu-kicker">FPS ONLINE · HUD ARENA PRO · REDE ESTÁVEL</div>
+      <h1>FRONTLINE<span>.WEB</span></h1>
+      <p class="lede">O teu FRONTLINE original. HUD Arena Pro+, partidas PvP e convites por link — com as armas, os mapas e a loja preservados.</p>
+
+      <div class="map-choices">
+        <button class="map-tile selected" data-map="industrial"><div class="map-art industry"><i></i><i></i><i></i></div><strong>BLOCO INDUSTRIAL</strong><small>Betão · armazéns · corredores</small></button>
+        <button class="map-tile" data-map="harbor"><div class="map-art harbor"><i></i><i></i><i></i></div><strong>PORTO NOTURNO</strong><small>Cais · nevoeiro · contentores</small></button>
+        <button class="map-tile" data-map="rust"><div class="map-art rust"><i></i><i></i><i></i></div><strong>ARENA FERRUGEM</strong><small>PvP · pátio industrial · até 4 jogadores</small></button>
+        <button class="map-tile" data-map="azure"><div class="map-art azure"><i></i><i></i><i></i></div><strong>TERMINAL AZUL</strong><small>PvP · contentores costeiros · até 4 jogadores</small></button>
+      </div>
+
+      <section id="room-setup" class="roomSetup" aria-label="Configuração de salas multiplayer">
+        <div class="roomSetupHeading">SALAS PRIVADAS <span>·</span> MULTIPLAYER</div>
+        <div class="roomSetupGrid">
+          <label>MODO DA SALA<select id="room-mode-select"><option value="1v1">1v1 · DUELO</option><option value="2v1">2v1 · DESAFIO</option><option value="2v2">2v2 · EQUIPAS</option><option value="coop">COOPERATIVO · 2 JOGADORES</option></select></label>
+          <label>MAPA DA SALA<select id="room-map-select"><option value="rust">ARENA FERRUGEM</option><option value="azure">TERMINAL AZUL</option></select></label>
+        </div>
+        <p class="roomSetupFoot">Escolhe o modo e o mapa. No lobby podes organizar as equipas antes de começar.</p>
+      </section>
+      <div class="playerIdentity"><label for="player-nick">O TEU NOME NO JOGO</label><input id="player-nick" maxlength="16" autocomplete="nickname" spellcheck="false" placeholder="Escolhe o teu nickname" value="JOGADOR"/></div>
+      <div class="actions">
+        <button id="solo" class="primary">JOGAR A SOLO <span>↗</span></button>
+        <button id="create" class="secondary">CRIAR SALA COM AMIGO</button>
+      </div>
+
+      <div class="join-row">
+        <label for="room-code">CÓDIGO DA SALA</label>
+        <input id="room-code" maxlength="6" placeholder="EX: B7K2PA" autocomplete="off" spellcheck="false"/>
+        <button id="join">ENTRAR</button>
+      </div>
+
+      <div id="recover-banner" class="recoverBanner hidden"><div><strong>PARTIDA INTERROMPIDA?</strong><small>Se atualizaste esta página, ainda podes recuperar o teu lugar na sala.</small></div><button type="button" id="recover-session">RECUPERAR PARTIDA</button></div>
+      <div id="room-banner" class="hidden"><span>SALA CRIADA</span><strong id="generated-code">------</strong><button type="button" id="copy-invite">↗ COPIAR CONVITE</button><small>Partilha o link para os teus amigos entrarem na sala.</small></div>
+      <div id="status" role="status">Escolhe um mapa e entra em jogo. Para jogar com amigos, mantém este servidor aberto.</div>
+
+      <div class="menu-footer"><button id="settings-btn">⚙ DEFINIÇÕES</button><span>Aliados azuis · bots verdes · R recarrega · E inspeciona</span></div>
+    </div>
+  </div>
+
+  <section id="room-lobby" class="roomLobby hidden" aria-labelledby="lobby-heading">
+    <div class="roomLobbyPanel">
+      <div class="roomLobbyEyebrow">FRONTLINE.WEB · SALA PRIVADA</div>
+      <h2 id="lobby-heading">PREPARAR PARTIDA<span>.</span></h2>
+      <div class="lobbyCodeHeader"><span>CÓDIGO DA SALA</span><button type="button" id="lobby-copy">↗ COPIAR CONVITE</button></div>
+      <div id="lobby-code" class="lobbyCode">------</div>
+      <div id="lobby-summary" class="lobbySummary">1v1 · ARENA FERRUGEM · 1/2</div>
+      <div class="lobbyConfig" id="lobby-host-config">
+        <label>ESCOLHER MODO<select id="lobby-mode"><option value="1v1">1v1 · DUELO</option><option value="2v1">2v1 · DESAFIO</option><option value="2v2">2v2 · EQUIPAS</option></select></label>
+        <label>ESCOLHER MAPA<select id="lobby-map"><option value="rust">ARENA FERRUGEM</option><option value="azure">TERMINAL AZUL</option></select></label>
+      </div>
+      <div class="lobbyTeamTitles"><strong>AZUL</strong><strong>LARANJA</strong></div>
+      <div id="lobby-players" class="lobbyPlayers" aria-live="polite"></div>
+      <p id="lobby-message" class="lobbyMessage" aria-live="polite">À espera de jogadores…</p>
+      <button type="button" id="lobby-start" class="lobbyStart">COMEÇAR PARTIDA <span>↗</span></button>
+      <p class="lobbyHint">O anfitrião pode alterar as equipas. Cada amigo entra com o link ou código da sala.</p>
+      <button type="button" id="lobby-leave" class="lobbyLeave">SAIR DA SALA</button>
+    </div>
+  </section>
+
+  <div id="modal" class="hidden"><div class="dialog"><div class="dialog-head"><h2 id="modal-title"></h2><button id="modal-close">✕</button></div><div id="modal-body"></div></div></div>
+  <div id="loading"><strong>A PREPARAR O MOTOR 3D…</strong><p>Three.js e gráficos</p></div>
+</main>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

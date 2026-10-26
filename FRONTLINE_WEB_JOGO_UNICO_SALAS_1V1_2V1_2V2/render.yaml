@@ -1,0 +1,12 @@
+# Render Blueprint opcional. O mesmo servidor serve o jogo e as salas WebSocket.
+services:
+  - type: web
+    name: frontline-web-original
+    runtime: node
+    plan: free
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
